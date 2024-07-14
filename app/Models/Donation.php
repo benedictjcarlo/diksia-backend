@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Transaction;
+use App\Models\Fundraiser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -32,6 +33,11 @@ class Donation extends Model
     public function transaction()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function fundraisers()
+    {
+        return $this->belongsTo(Fundraiser::class, 'fundraiser_id');
     }
 
     public function getCreatedAtAttribute($value){

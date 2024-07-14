@@ -74,8 +74,6 @@ class TransactionController extends Controller
                 'method' => $request->method,
                 'status' => $request->status,
             ];
-            
-            // return Response($data);
 
             $transaction = Transaction::create($data);
             
