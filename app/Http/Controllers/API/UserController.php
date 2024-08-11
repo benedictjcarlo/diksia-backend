@@ -4,12 +4,13 @@ namespace App\Http\Controllers\API;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Actions\Fortify\PasswordValidationRules;
 use Illuminate\Support\Facades\Validator;
+use App\Actions\Fortify\PasswordValidationRules;
 
 class UserController extends Controller
 {
@@ -100,12 +101,20 @@ class UserController extends Controller
     }
 
     public function updateProfile(Request $request){
-        $data = $request->all();
-
         $user = Auth::user();
-
-        $user->update($data);
-
+        $allowedFields = ['name', 'email', 'birthDate', 'phoneNumber'];
+    
+        foreach ($request->only($allowedFields) as $key => $value) {
+            if (!empty($value)) {
+                if ($key === 'birthDate') {
+                    $value = Carbon::parse($value)->format('Y-m-d'); // Format birthDate to Y-m-d
+                }
+                $user->$key = $value;
+            }
+        }
+    
+        $user->save();
+    
         return ResponseFormatter::success($user, 'Profile Updated');
     }
 

@@ -31,6 +31,11 @@
                         {{ __('Transaction') }}
                     </x-nav-link>
                 </div>
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link href="/dashboard/shipment" :active="request()->routeIs('/dashboard/shipment')">
+                        {{ __('Shipment') }}
+                    </x-nav-link>
+                </div>
                 {{-- <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link href="{{ route('/user/profile') }}" :active="request()->routeIs('/user/profile')">
                         {{ __('Profile') }}

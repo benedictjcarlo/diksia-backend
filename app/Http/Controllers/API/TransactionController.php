@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Exception;
 use App\Models\Transaction;
+use App\Models\Donation;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
@@ -76,7 +77,11 @@ class TransactionController extends Controller
             ];
 
             $transaction = Transaction::create($data);
-            
+            $donation = $transaction->donation;
+            $donation->update([
+                'donationAmount'=> $donation->donationAmount+$transaction->amount
+            ]);
+
             $transaction = Transaction::with(['donation','user'])->find($transaction->id);
             
             return ResponseFormatter::success($transaction, 'Transaksi Berhasil');

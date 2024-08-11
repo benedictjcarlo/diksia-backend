@@ -26,6 +26,14 @@
     <div>
         <div class="flex border items-center p-6">
             <h2 class="ms-3 text-xl font-semibold text-gray-900">
+                <a href="/dashboard/shipment">Shipments</a>
+            </h2>
+        </div>
+    </div>
+
+    <div>
+        <div class="flex border items-center p-6">
+            <h2 class="ms-3 text-xl font-semibold text-gray-900">
                 <a href="/user/profile">Profile</a>
             </h2>
         </div>
