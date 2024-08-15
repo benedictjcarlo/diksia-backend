@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Carbon\Carbon;
 use App\Models\Donation;
 use App\Models\Transaction;
@@ -12,8 +11,9 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens;
     use HasFactory;
@@ -32,7 +32,10 @@ class User extends Authenticatable
         'password',
         'birthDate',
         'phoneNumber',
-        'profile_photo_path'
+        'profile_photo_path',
+        'verification_token',
+        'verification_expires_at',
+        'email_verified_at'
     ];
 
     public function donation(){
@@ -63,6 +66,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'verification_expires_at' => 'datetime',
     ];
 
     /**
@@ -81,4 +85,5 @@ class User extends Authenticatable
     public function getUpdatedAtAttribute($value){
         return Carbon::parse($value)->timestamp;
     }
+    
 }

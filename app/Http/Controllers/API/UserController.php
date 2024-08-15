@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use App\Actions\Fortify\PasswordValidationRules;
 
@@ -30,11 +32,20 @@ class UserController extends Controller
             if(!Auth::attempt($credentials)) {
                 return ResponseFormatter::error([
                     'message' => 'Unauthorized'
-                ], 'Authentication Failed', 500);
+                ], 'Password yang dimasukkan salah', 500);
             }
 
             //Jika Hash Tidak Sesuai Maka Beri Error
             $user = User::where('email', $request->email)->first();
+
+            // Check if email is verified
+            if (is_null($user->email_verified_at)) {
+                return ResponseFormatter::error([
+                    'message' => 'Email not verified'
+                ], 'Authentication Failed', 403);
+            }
+
+            // Verify password
             if(!Hash::check($request->password, $user->password, [])) {
                 throw new \Exception('Invalid Credentials');
             }
@@ -51,7 +62,7 @@ class UserController extends Controller
             return ResponseFormatter::error([
                 'message' => 'Something Went Wrong',
                 'error' => $error->getMessage()
-            ], 'Authentication Failed', 500);
+            ], 'Email/Password yang dimasukkan salah', 500);
         }
     }
 
@@ -63,22 +74,29 @@ class UserController extends Controller
                 'password' => $this->passwordRules()
             ]);
 
+            $verificationToken = Str::random(32);
+            $verificationExpiresAt = Carbon::now()->addHours(24);
+
             User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'birthDate' => $request->birthDate,
-                'phoneNumber' => $request->phoneNumber
+                'phoneNumber' => $request->phoneNumber,
+                'verification_token' => $verificationToken,
+                'verification_expires_at' => $verificationExpiresAt,
             ]);
 
             $user = User::where('email', $request->email)->first();
+            Mail::to($user->email)->send(new \App\Mail\EmailVerification($user));
 
-            $tokenResult = $user->createToken('authToken')->plainTextToken;
+            // $tokenResult = $user->createToken('authToken')->plainTextToken;
 
             return ResponseFormatter::success([
-                'accessToken' => $tokenResult,
-                'token_type' => 'Bearer',
-                'user' => $user
+                // 'accessToken' => $tokenResult,
+                // 'token_type' => 'Bearer',
+                // 'user' => $user,
+                'message' => 'Registrasi berhasil! Tolong cek email Anda untuk melakukan verifikasi email.'
             ], 'User Registered');
         } catch (\Exception $error){
             return ResponseFormatter::error([
@@ -87,6 +105,23 @@ class UserController extends Controller
             ], 'Authentication Failed', 500);
 
         }
+    }
+
+    public function verifyEmail(Request $request, $token)
+    {
+        $user = User::where('verification_token', $token)
+            ->where('verification_expires_at', '>', Carbon::now())
+            ->first();
+
+        if ($user) {
+            $user->email_verified_at = Carbon::now();
+            $user->verification_token = null;
+            $user->verification_expires_at = null;
+            $user->save();
+            return ResponseFormatter::success([], 'Email verified successfully.');
+        }
+
+        return ResponseFormatter::error([], 'Verification link is invalid or has expired.', 400);
     }
 
     public function logout(Request $request){

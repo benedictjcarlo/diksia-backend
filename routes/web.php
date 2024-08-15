@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DonationController;
+use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\TransactionController;
 use App\Models\Donation;
 
@@ -34,4 +35,8 @@ Route::prefix('dashboard')
         Route::get('transaction/{id}/status/{status}', [TransactionController::class, 'changeStatus'])
             ->name('transaction.changeStatus');
         Route::resource('transaction', TransactionController::class);
+
+        Route::get('shipment/{id}/status/{status}', [ShipmentController::class, 'changeStatus'])
+            ->name('shipment.changeStatus');
+        Route::resource('shipment', ShipmentController::class);
     });
